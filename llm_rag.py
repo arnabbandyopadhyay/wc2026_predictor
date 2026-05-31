@@ -31,27 +31,20 @@ class RAGPredictor:
         self._client = None
 
     def _detect_available_model(self) -> str:
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
-            _ = genai.list_models()
-            if os.environ.get("GEMINI_API_KEY"):
+        if os.environ.get("GEMINI_API_KEY"):
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
                 return "gemini"
-        except Exception:
-            pass
+            except Exception:
+                pass
 
-        try:
-            import openai
-            if os.environ.get("OPENAI_API_KEY"):
+        if os.environ.get("OPENAI_API_KEY"):
+            try:
+                import openai
                 return "openai"
-        except Exception:
-            pass
-
-        try:
-            from transformers import pipeline
-            return "transformers"
-        except Exception:
-            pass
+            except Exception:
+                pass
 
         return "none"
 

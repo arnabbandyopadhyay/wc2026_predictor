@@ -1,6 +1,10 @@
 """Streamlit dashboard for WC2026 Predictor."""
 
+import os
 import streamlit as st
+for _key in ("GEMINI_API_KEY", "OPENAI_API_KEY"):
+    if _key in st.secrets:
+        os.environ[_key] = st.secrets[_key]
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -26,8 +30,9 @@ st.markdown("""
 
     * { font-family: 'Inter', -apple-system, sans-serif; }
 
-    .main > div { padding: 1.5rem 2.5rem; max-width: 100% !important; }
-    .block-container { max-width: 100% !important; padding-left: 2rem !important; padding-right: 2rem !important; }
+    .main > div { padding: 0.8rem 1.2rem; max-width: 100% !important; }
+    .block-container { max-width: 100% !important; padding: 0.5rem 1rem !important; }
+    @media (max-width: 768px) { .main > div { padding: 0.4rem 0.6rem; } }
     .stApp { background: #f4f6fb; }
 
     h1 { color: #1a1a2e !important; font-weight: 800 !important; font-size: 2rem !important; letter-spacing: -0.5px; }
@@ -444,7 +449,7 @@ def _run_mc():
     if os.path.exists(cache_path):
         with open(cache_path) as f:
             return json.load(f)
-    mc = TournamentSimulator().run_monte_carlo(25)
+    mc = TournamentSimulator().run_monte_carlo(100)
     try:
         with open(cache_path, "w") as f:
             json.dump(mc, f)
@@ -464,7 +469,7 @@ def render_overview():
     with col4: st.metric("Knockout Teams", "32")
 
     if st.button("🏅 Run Championship Simulation"):
-        with st.spinner("Running 25 Monte Carlo simulations…"):
+        with st.spinner("Running 100 Monte Carlo simulations…"):
             mc = _run_mc()
     else:
         mc = None
