@@ -17,11 +17,11 @@ st.markdown("""
     * { font-family: 'Inter', -apple-system, sans-serif; }
 
     .main > div { padding: 0.8rem 1.2rem; max-width: 100% !important; }
-    .block-container { max-width: 100% !important; padding: 0.5rem 1rem !important; }
+    .block-container { max-width: 100% !important; padding: 1rem 1rem !important; }
     @media (max-width: 768px) { .main > div { padding: 0.4rem 0.6rem; } }
     .stApp { background: #f4f6fb; }
 
-    h1 { color: #1a1a2e !important; font-weight: 800 !important; font-size: 2rem !important; letter-spacing: -0.5px; }
+    h1 { color: #1a1a2e !important; font-weight: 800 !important; font-size: 2rem !important; letter-spacing: -0.5px; word-break: break-word !important; overflow-wrap: break-word !important; }
     h2 { color: #1a1a2e !important; font-weight: 700 !important; font-size: 1.5rem !important; }
     h3 { color: #1a1a2e !important; font-weight: 600 !important; font-size: 1.2rem !important; }
     h4 { color: #2d2d4e !important; font-weight: 600 !important; }
