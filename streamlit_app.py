@@ -16,9 +16,10 @@ st.markdown("""
 
     * { font-family: 'Inter', -apple-system, sans-serif; }
 
-    .main > div { padding: 0.8rem 1.2rem; max-width: 100% !important; }
-    .block-container { max-width: 100% !important; padding: 1rem 1rem !important; }
-    @media (max-width: 768px) { .main > div { padding: 0.4rem 0.6rem; } }
+    section[data-testid="stAppViewContainer"] > section[data-testid="main"] { margin-top: 0 !important; padding-top: 0 !important; }
+    .main > div { padding: 0.3rem 1.2rem 0.8rem 1.2rem; max-width: 100% !important; }
+    .block-container { max-width: 100% !important; padding: 0.5rem 1rem !important; }
+    @media (max-width: 768px) { .main > div { padding: 0.2rem 0.6rem 0.4rem 0.6rem; } }
     .stApp { background: #f4f6fb; }
 
     h1 { color: #1a1a2e !important; font-weight: 800 !important; font-size: 2rem !important; letter-spacing: -0.5px; word-break: break-word !important; overflow-wrap: break-word !important; }
