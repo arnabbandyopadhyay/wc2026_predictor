@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}World Cup Groups{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;">World Cup 2026 Groups</h1>
+    <p class="text-muted" style="margin-bottom:1.5rem;">Statistical predictions for each group</p>
+
+    <div class="grid-3">
+        {% for g_name, g_data in groups.items() %}
+        <div class="card">
+            <h3 style="font-weight:700; margin-bottom:0.8rem; color:#f7c948;">Group {{ g_name }}</h3>
+            <table style="font-size:0.85rem;">
+                <thead>
+                    <tr>
+                        <th>Team</th>
+                        <th>Rank</th>
+                        <th>Conf</th>
+                        <th>Pts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rank, name, conf, pts in g_data.teams %}
+                    <tr>
+                        <td><a href="/team/{{ name }}" style="color:#e0e6f0; text-decoration:none;">{{ name }}</a></td>
+                        <td>#{{ rank }}</td>
+                        <td><span class="badge badge-{{ conf.lower() }}">{{ conf[:4] }}</span></td>
+                        <td>{{ pts }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if g_data.predictions %}
+            <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid #2a3050;">
+                <div style="font-size:0.75rem; color:#8892b0; margin-bottom:0.5rem;">Predicted Standings</div>
+                {% for p in g_data.predictions %}
+                <div style="display:flex; align-items:center; gap:0.5rem; padding:0.2rem 0; font-size:0.8rem; {% if loop.index <= 2 %}color:#10b981; font-weight:600;{% endif %}">
+                    <span style="min-width:1.5rem;">#{{ loop.index }}</span>
+                    <span style="flex:1;">{{ p.team }}</span>
+                    <span>{{ p.points }} pts</span>
+                    <span class="text-muted">{% if p.gd > 0 %}+{% endif %}{{ p.gd }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

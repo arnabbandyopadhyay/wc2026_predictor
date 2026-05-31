@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}WC2026 Predictor - Dashboard{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <div>
+            <h1 style="font-size:1.8rem; font-weight:800;">FIFA World Cup 2026</h1>
+            <p class="text-muted" style="margin-top:0.3rem;">LLM-Enhanced Tournament Prediction Engine</p>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:0.8rem; color:#8892b0;">48 Teams &middot; 12 Groups &middot; 104 Matches</div>
+            <div style="font-size:0.8rem; color:#8892b0;">June 11 &ndash; July 19, 2026</div>
+        </div>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:1.5rem;">
+        <div class="card" style="text-align:center;">
+            <div class="stat-label">Top Ranked</div>
+            <div class="stat-value" style="color:#f7c948;">France</div>
+            <div class="text-muted" style="font-size:0.85rem;">1877.32 pts</div>
+        </div>
+        <div class="card" style="text-align:center;">
+            <div class="stat-label">Defending Champion</div>
+            <div class="stat-value" style="color:#10b981;">Argentina</div>
+            <div class="text-muted" style="font-size:0.85rem;">2022 World Cup Winners</div>
+        </div>
+        <div class="card" style="text-align:center;">
+            <div class="stat-label">Most Appearances</div>
+            <div class="stat-value" style="color:#3b82f6;">Brazil</div>
+            <div class="text-muted" style="font-size:0.85rem;">23rd World Cup (all-time record)</div>
+        </div>
+    </div>
+
+    <h2 class="card-title" style="margin-bottom:1rem;">Group Draw &amp; Predictions</h2>
+    <div class="grid-4" style="margin-bottom:2rem;">
+        {% for g_name, team_names in groups.items() %}
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                <h3 style="font-weight:700;">Group {{ g_name }}</h3>
+            </div>
+            {% set group_key = g_name %}
+            {% for t_name in team_names %}
+            {% set team = namespace(found=false) %}
+            {% for t in teams %}
+            {% if t.name == t_name %}
+            <div style="display:flex; align-items:center; gap:0.5rem; padding:0.3rem 0; font-size:0.85rem;">
+                <span class="badge badge-{{ t.confederation.lower() }}">{{ t.confederation[:4] }}</span>
+                <span style="flex:1;">{{ t.name }}</span>
+                <span class="text-muted" style="font-size:0.75rem;">#{{ t.fifa_rank }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+            <button class="btn btn-outline" style="width:100%; margin-top:0.5rem; font-size:0.75rem;"
+                    onclick="showGroupPrediction('{{ g_name }}')">
+                Predict Group
+            </button>
+            <div id="group-{{ g_name }}" style="margin-top:0.5rem; display:none;">
+                <div style="font-size:0.75rem; color:#f7c948; text-align:center;">Loading...</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2 class="card-title" style="margin-bottom:1rem;">Quick Match Predictions</h2>
+    <div class="grid-3" style="margin-bottom:2rem;">
+        <div class="card" id="match-pred-1">
+            <div style="font-size:0.75rem; color:#8892b0; margin-bottom:0.5rem;">Group L - Opening Match</div>
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                <span style="flex:1; font-weight:600;">Mexico</span>
+                <span style="color:#8892b0;">vs</span>
+                <span style="flex:1; font-weight:600; text-align:right;">Senegal</span>
+            </div>
+            <div id="quick-pred-1" style="text-align:center; font-size:0.8rem; color:#8892b0;">
+                Loading prediction...
+            </div>
+        </div>
+        <div class="card" id="match-pred-2">
+            <div style="font-size:0.75rem; color:#8892b0; margin-bottom:0.5rem;">Group D - Blockbuster</div>
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                <span style="flex:1; font-weight:600;">Argentina</span>
+                <span style="color:#8892b0;">vs</span>
+                <span style="flex:1; font-weight:600; text-align:right;">Colombia</span>
+            </div>
+            <div id="quick-pred-2" style="text-align:center; font-size:0.8rem; color:#8892b0;">
+                Loading prediction...
+            </div>
+        </div>
+        <div class="card" id="match-pred-3">
+            <div style="font-size:0.75rem; color:#8892b0; margin-bottom:0.5rem;">Group E - European Clash</div>
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                <span style="flex:1; font-weight:600;">Spain</span>
+                <span style="color:#8892b0;">vs</span>
+                <span style="flex:1; font-weight:600; text-align:right;">Switzerland</span>
+            </div>
+            <div id="quick-pred-3" style="text-align:center; font-size:0.8rem; color:#8892b0;">
+                Loading prediction...
+            </div>
+        </div>
+    </div>
+
+    <h2 class="card-title" style="margin-bottom:1rem;">Championship Favorites (Monte Carlo)</h2>
+    <div class="card" id="mc-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <span class="text-muted">Based on 500 tournament simulations</span>
+            <button class="btn btn-primary" onclick="runMonteCarlo()">Re-run</button>
+        </div>
+        <div id="mc-results">
+            <div style="text-align:center; color:#8892b0; padding:2rem;">Running simulations...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const TEAM_FLAGS = {};
+
+function showGroupPrediction(g) {
+    const el = document.getElementById('group-' + g);
+    el.style.display = 'block';
+    el.innerHTML = '<div style="font-size:0.75rem; color:#f7c948; text-align:center;">Predicting...</div>';
+
+    fetch('/api/predict-all-groups')
+        .then(r => r.json())
+        .then(data => {
+            const standings = data[g];
+            if (!standings) return;
+            let html = '<table style="font-size:0.75rem;">';
+            html += '<tr><th>#</th><th>Team</th><th>Pts</th><th>GD</th></tr>';
+            standings.forEach((s, i) => {
+                const cls = i < 2 ? 'text-green' : 'text-muted';
+                html += `<tr class="${cls}">
+                    <td>${i+1}</td>
+                    <td>${s.team}</td>
+                    <td><strong>${s.points}</strong></td>
+                    <td>${s.gd > 0 ? '+' : ''}${s.gd}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            el.innerHTML = html;
+        })
+        .catch(() => {
+            el.innerHTML = '<div style="font-size:0.75rem; color:#ef4444; text-align:center;">Error loading</div>';
+        });
+}
+
+function loadQuickPrediction(id, teamA, teamB) {
+    fetch(`/predict/${teamA}/${teamB}`)
+        .then(r => r.json())
+        .then(d => {
+            const p = d.prediction;
+            const el = document.getElementById('quick-pred-' + id);
+            const winnerPct = p.team_a_win_pct;
+            const isFav = winnerPct >= 50;
+            el.innerHTML = `
+                <div style="display:flex; gap:1rem; align-items:center; margin-top:0.5rem;">
+                    <div style="flex:1; text-align:center;">
+                        <div style="font-size:1.5rem; font-weight:800; color:${isFav ? '#f7c948' : '#8892b0'};">${p.team_a_win_pct}%</div>
+                        <div style="font-size:0.7rem; color:#8892b0;">${d.team_a.name}</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:1.2rem; font-weight:700; color:#f7c948;">${p.predicted_score}</div>
+                        <div style="font-size:0.7rem; color:#f59e0b;">predicted</div>
+                    </div>
+                    <div style="flex:1; text-align:center;">
+                        <div style="font-size:1.5rem; font-weight:800; color:${!isFav ? '#f7c948' : '#8892b0'};">${p.team_b_win_pct}%</div>
+                        <div style="font-size:0.7rem; color:#8892b0;">${d.team_b.name}</div>
+                    </div>
+                </div>
+                <div style="font-size:0.7rem; color:#8892b0; text-align:center; margin-top:0.3rem;">
+                    Confidence: ${(p.confidence * 100).toFixed(0)}%
+                    ${p.consensus_favorite !== 'even' ? `&middot; Media: ${p.consensus_favorite}` : ''}
+                </div>
+            `;
+        });
+}
+
+function runMonteCarlo() {
+    const el = document.getElementById('mc-results');
+    el.innerHTML = '<div style="text-align:center; color:#8892b0; padding:2rem;">Running 500 simulations...</div>';
+    fetch('/api/monte-carlo?n=500')
+        .then(r => r.json())
+        .then(data => {
+            let html = '';
+            data.winners.slice(0, 10).forEach((w, i) => {
+                const barWidth = Math.max(w.pct * 4, 2);
+                html += `<div class="factor-bar">
+                    <span class="label" style="min-width:80px; font-weight:600;">${i+1}. ${w.team}</span>
+                    <div class="bar"><div class="fill" style="width:${barWidth}%; background:linear-gradient(90deg,#f7c948,#f59e0b);"></div></div>
+                    <span class="value" style="font-weight:700; color:#f7c948;">${w.pct}%</span>
+                </div>`;
+            });
+            el.innerHTML = html;
+        });
+}
+
+loadQuickPrediction(1, 'Mexico', 'Senegal');
+loadQuickPrediction(2, 'Argentina', 'Colombia');
+loadQuickPrediction(3, 'Spain', 'Switzerland');
+runMonteCarlo();
+</script>
+{% endblock %}

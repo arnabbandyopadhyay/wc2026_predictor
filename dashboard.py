@@ -26,7 +26,8 @@ st.markdown("""
 
     * { font-family: 'Inter', -apple-system, sans-serif; }
 
-    .main > div { padding: 1.5rem 2.5rem; }
+    .main > div { padding: 1.5rem 2.5rem; max-width: 100% !important; }
+    .block-container { max-width: 100% !important; padding-left: 2rem !important; padding-right: 2rem !important; }
     .stApp { background: #f4f6fb; }
 
     h1 { color: #1a1a2e !important; font-weight: 800 !important; font-size: 2rem !important; letter-spacing: -0.5px; }
@@ -518,7 +519,13 @@ def render_overview():
         lam_str = f"λ={p.lambda_a:.2f} / {p.lambda_b:.2f} (base)"
         if p.adjusted_lambda_a is not None:
             lam_str += f" → adj={p.adjusted_lambda_a:.2f} / {p.adjusted_lambda_b:.2f}"
-        st.markdown(f"<div style='text-align:center;color:#8888bb;margin-top:0.3rem;'>Draw: {p.draw_prob:.0%} · {lam_str}</div>", unsafe_allow_html=True)
+        try:
+            from llm_rag import rag_predictor
+            ms = rag_predictor.model_source
+            model_label = "Enhanced Poisson + Gemini" if ms == "gemini" else "Enhanced Poisson"
+        except Exception:
+            model_label = "Enhanced Poisson"
+        st.markdown(f"<div style='text-align:center;color:#b0b8d0;margin-top:0.3rem;'>Draw: {p.draw_prob:.0%} · {lam_str}<br><span style='font-size:0.78rem;'>Model: {model_label}</span></div>", unsafe_allow_html=True)
 
 
 def render_rankings():
@@ -688,6 +695,17 @@ def render_h2h():
             st.markdown(f"<div style='text-align:center;padding:0.8rem;background:#f5f5fa;border-radius:10px;'><div style='font-size:1.8rem;font-weight:800;color:#1a1a2e;'>{p.draw_prob:.0%}</div><div style='color:#6b6b8d;font-size:0.85rem;'>Draw</div></div>", unsafe_allow_html=True)
         with col3:
             st.markdown(f"<div style='text-align:center;padding:0.8rem;background:#f5f0ff;border-radius:10px;'><div style='font-size:1.8rem;font-weight:800;color:#7b2cbf;'>{p.win_prob_b:.0%}</div><div style='color:#6b6b8d;font-size:0.85rem;'>{tb} Win</div></div>", unsafe_allow_html=True)
+
+        try:
+            from llm_rag import rag_predictor
+            model_src = rag_predictor.model_source
+            rag_predictor.initialize()
+            model_label = "Enhanced Poisson + Gemini" if model_src == "gemini" else \
+                          "Enhanced Poisson + OpenAI" if model_src == "openai" else \
+                          "Enhanced Poisson"
+        except Exception:
+            model_label = "Enhanced Poisson"
+        st.markdown(f"<div style='text-align:center;color:#b0b8d0;font-size:0.78rem;margin-top:0.2rem;'>Model: {model_label}</div>", unsafe_allow_html=True)
 
         st.markdown("---")
 

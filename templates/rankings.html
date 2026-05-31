@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}FIFA Rankings{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;">FIFA World Rankings</h1>
+    <p class="text-muted" style="margin-bottom:1.5rem;">April 2026 &middot; Top 48 Qualified Teams</p>
+
+    <div class="card" style="overflow-x:auto; padding:0;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team</th>
+                    <th>Confederation</th>
+                    <th>Points</th>
+                    <th>WC Apps</th>
+                    <th>Best Result</th>
+                    <th>Form Adj</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in teams %}
+                <tr>
+                    <td><span class="rank-num">#{{ t.rank }}</span></td>
+                    <td>
+                        <a href="/team/{{ t.name }}" style="color:#e0e6f0; text-decoration:none; font-weight:500;">
+                            {{ t.name }}
+                        </a>
+                    </td>
+                    <td><span class="badge badge-{{ t.confederation.lower() }}">{{ t.confederation }}</span></td>
+                    <td style="font-weight:600;">{{ t.points }}</td>
+                    <td>{{ t.appearances }}</td>
+                    <td class="text-muted">{{ t.best_result }}</td>
+                    <td>
+                        {% if t.form > 0 %}
+                        <span class="text-green">+{{ t.form }}</span>
+                        {% elif t.form < 0 %}
+                        <span class="text-red">{{ t.form }}</span>
+                        {% else %}
+                        <span class="text-muted">0</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Head-to-Head Analysis{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;">Head-to-Head Analysis</h1>
+    <p class="text-muted" style="margin-bottom:1.5rem;">Detailed match-up predictions with statistical breakdown</p>
+
+    <div class="grid-2" style="margin-bottom:1.5rem;">
+        <div class="card">
+            <label class="stat-label" for="team-a">Team A</label>
+            <select id="team-a" class="btn btn-outline" style="width:100%; margin-top:0.3rem; padding:0.6rem;">
+                {% for t in teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="card">
+            <label class="stat-label" for="team-b">Team B</label>
+            <select id="team-b" class="btn btn-outline" style="width:100%; margin-top:0.3rem; padding:0.6rem;">
+                {% for t in teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="analyze()" style="margin-bottom:1.5rem;">Analyze Match-up</button>
+
+    <div id="h2h-results">
+        <div class="card" style="text-align:center; padding:3rem;">
+            <p class="text-muted">Select two teams and click "Analyze Match-up" to see detailed prediction</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let chartInstance = null;
+
+function analyze() {
+    const teamA = document.getElementById('team-a').value;
+    const teamB = document.getElementById('team-b').value;
+
+    if (teamA === teamB) {
+        document.getElementById('h2h-results').innerHTML = '<div class="card" style="text-align:center; padding:2rem; color:#ef4444;">Please select two different teams</div>';
+        return;
+    }
+
+    const el = document.getElementById('h2h-results');
+    el.innerHTML = '<div class="card" style="text-align:center; padding:2rem;"><div class="text-muted">Analyzing...</div></div>';
+
+    fetch(`/predict/${teamA}/${teamB}`)
+        .then(r => r.json())
+        .then(d => {
+            renderH2H(d);
+        })
+        .catch(e => {
+            el.innerHTML = '<div class="card" style="text-align:center; padding:2rem; color:#ef4444;">Error loading analysis</div>';
+        });
+}
+
+function renderH2H(d) {
+    const a = d.team_a;
+    const b = d.team_b;
+    const p = d.prediction;
+    const h2h = d.head_to_head;
+
+    let html = `
+    <div class="grid-2" style="margin-bottom:1rem;">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:1.5rem; font-weight:800;">${a.name}</div>
+            <div style="margin:0.5rem 0;">
+                <span class="rank-num">#${a.fifa_rank}</span>
+                <span class="text-muted" style="margin-left:0.5rem;">${a.fifa_points} pts</span>
+            </div>
+            <span class="badge badge-${a.confederation.toLowerCase()}">${a.confederation}</span>
+            <div style="margin-top:0.8rem;">
+                <div class="form-indicator" style="justify-content:center;">
+                    ${a.form.split('').map(c => `<div class="form-${c.toLowerCase()}"></div>`).join('')}
+                </div>
+            </div>
+            <div style="margin-top:0.5rem; font-size:0.8rem;">
+                <span class="text-muted">GF: ${a.avg_goals_scored} / GA: ${a.avg_goals_conceded}</span>
+            </div>
+            ${a.injuries && a.injuries.length ? `<div style="margin-top:0.5rem; font-size:0.75rem; color:#ef4444;">${a.injuries.slice(0,2).join('<br>')}</div>` : ''}
+        </div>
+        <div class="card" style="text-align:center;">
+            <div style="font-size:1.5rem; font-weight:800;">${b.name}</div>
+            <div style="margin:0.5rem 0;">
+                <span class="rank-num">#${b.fifa_rank}</span>
+                <span class="text-muted" style="margin-left:0.5rem;">${b.fifa_points} pts</span>
+            </div>
+            <span class="badge badge-${b.confederation.toLowerCase()}">${b.confederation}</span>
+            <div style="margin-top:0.8rem;">
+                <div class="form-indicator" style="justify-content:center;">
+                    ${b.form.split('').map(c => `<div class="form-${c.toLowerCase()}"></div>`).join('')}
+                </div>
+            </div>
+            <div style="margin-top:0.5rem; font-size:0.8rem;">
+                <span class="text-muted">GF: ${b.avg_goals_scored} / GA: ${b.avg_goals_conceded}</span>
+            </div>
+            ${b.injuries && b.injuries.length ? `<div style="margin-top:0.5rem; font-size:0.75rem; color:#ef4444;">${b.injuries.slice(0,2).join('<br>')}</div>` : ''}
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+        <h3 class="card-title">Match Prediction</h3>
+        <div style="display:flex; align-items:center; gap:2rem; justify-content:center; padding:1rem 0;">
+            <div style="text-align:center;">
+                <div style="font-size:2rem; font-weight:800; color:#f7c948;">${p.team_a_win_pct}%</div>
+                <div style="font-size:0.8rem;">${a.name} Win</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:1.5rem; font-weight:700; color:#f59e0b;">${p.predicted_score}</div>
+                <div style="font-size:0.8rem; color:#8892b0;">Predicted Score</div>
+                <div style="font-size:0.75rem; color:#8892b0;">Draw: ${p.draw_pct}%</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:2rem; font-weight:800; color:#f7c948;">${p.team_b_win_pct}%</div>
+                <div style="font-size:0.8rem;">${b.name} Win</div>
+            </div>
+        </div>
+        <div class="progress-bar" style="height:12px;">
+            <div class="fill" style="width:${p.team_a_win_pct}%; background:linear-gradient(90deg,#f7c948,#f59e0b);"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.75rem; color:#8892b0;">
+            <span>${a.name}</span>
+            <span>Confidence: ${(p.confidence * 100).toFixed(0)}%</span>
+            <span>${b.name}</span>
+        </div>
+        ${p.consensus_favorite !== 'even' ? `<div style="text-align:center; margin-top:0.5rem; font-size:0.8rem; color:#f7c948;">Media Consensus favors: ${p.consensus_favorite}</div>` : ''}
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <h3 class="card-title">Prediction Factors</h3>`;
+
+    for (const [factor, value] of Object.entries(p.factors)) {
+        const barWidth = Math.abs(value) * 500;
+        const color = value > 0 ? '#10b981' : value < 0 ? '#ef4444' : '#8892b0';
+        const direction = value > 0 ? a.name : value < 0 ? b.name : 'Even';
+        html += `<div class="factor-bar">
+            <span class="label">${factor}</span>
+            <div class="bar"><div class="fill" style="width:${Math.min(barWidth, 100)}%; background:${color};"></div></div>
+            <span class="value" style="color:${color};">${direction}</span>
+        </div>`;
+    }
+
+    html += `</div>
+        <div class="card">
+            <h3 class="card-title">Head-to-Head History</h3>
+            <div style="text-align:center; padding:1rem 0;">
+                <div class="stat-value">${h2h.total}</div>
+                <div class="stat-label">Total Meetings</div>
+            </div>
+            <div style="display:flex; justify-content:space-around; margin-top:1rem;">
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem; font-weight:700; color:#10b981;">${h2h.team_a_wins}</div>
+                    <div style="font-size:0.75rem; color:#8892b0;">${a.name} Wins</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem; font-weight:700; color:#f59e0b;">${h2h.draws}</div>
+                    <div style="font-size:0.75rem; color:#8892b0;">Draws</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem; font-weight:700; color:#ef4444;">${h2h.team_b_wins}</div>
+                    <div style="font-size:0.75rem; color:#8892b0;">${b.name} Wins</div>
+                </div>
+            </div>
+            ${a.news && a.news.length ? `
+            <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid #2a3050;">
+                <div class="text-muted" style="font-size:0.75rem; margin-bottom:0.3rem;">Latest News</div>
+                ${a.news.slice(0,2).map(n => `<div style="font-size:0.75rem; padding:0.15rem 0;">&bull; ${n}</div>`).join('')}
+            </div>` : ''}
+        </div>
+    </div>`;
+
+    document.getElementById('h2h-results').innerHTML = html;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('a') && urlParams.has('b')) {
+        document.getElementById('team-a').value = urlParams.get('a');
+        document.getElementById('team-b').value = urlParams.get('b');
+        analyze();
+    }
+});
+</script>
+{% endblock %}
