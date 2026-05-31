@@ -767,6 +767,3 @@ def render_team_profile():
                 {"Pos": i+1, **s} for i, s in enumerate(predict_group_poisson(g_name, teams))
             ]), hide_index=True, width='stretch')
             break
-
-
-main()
